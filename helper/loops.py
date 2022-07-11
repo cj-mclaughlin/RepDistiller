@@ -96,14 +96,14 @@ def train_distill(epoch, train_loader, module_list, criterion_list, optimizer, o
         if opt.distill in ['crd']:
             input, target, index, contrast_idx = data
         else:
-            input, target, index = data
+            input, target = data
         data_time.update(time.time() - end)
 
         input = input.float()
         if torch.cuda.is_available():
             input = input.cuda()
             target = target.cuda()
-            index = index.cuda()
+            # index = index.cuda()
             if opt.distill in ['crd']:
                 contrast_idx = contrast_idx.cuda()
 
@@ -215,7 +215,7 @@ def train_distill(epoch, train_loader, module_list, criterion_list, optimizer, o
     return top1.avg, losses.avg
 
 
-def validate(val_loader, model, criterion, opt):
+def validate(val_loader, model, criterion, opt, debug=False):
     """validation"""
     batch_time = AverageMeter()
     losses = AverageMeter()
@@ -247,15 +247,15 @@ def validate(val_loader, model, criterion, opt):
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
-
-            if idx % opt.print_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                      'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                       idx, len(val_loader), batch_time=batch_time, loss=losses,
-                       top1=top1, top5=top5))
+            if not debug:
+                if idx % opt.print_freq == 0:
+                    print('Test: [{0}/{1}]\t'
+                        'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                        'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                        idx, len(val_loader), batch_time=batch_time, loss=losses,
+                        top1=top1, top5=top5))
 
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))

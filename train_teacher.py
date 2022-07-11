@@ -38,12 +38,14 @@ def parse_option():
     parser.add_argument('--lr_decay_rate', type=float, default=0.1, help='decay rate for learning rate')
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
+    parser.add_argument('--label_smoothing', type=float, default=0.0, help='smoothing e')
+    parser.add_argument('--save_name', type=str, default="")
 
     # dataset
-    parser.add_argument('--model', type=str, default='resnet110',
+    parser.add_argument('--model', type=str, default='wrn_40_2',
                         choices=['resnet8', 'resnet14', 'resnet20', 'resnet32', 'resnet44', 'resnet56', 'resnet110',
                                  'resnet8x4', 'resnet32x4', 'wrn_16_1', 'wrn_16_2', 'wrn_40_1', 'wrn_40_2',
-                                 'vgg8', 'vgg11', 'vgg13', 'vgg16', 'vgg19',
+                                 'vgg8', 'vgg11', 'vgg13', 'vgg16', 'vgg19', 'ResNet50', 'ResNet18'
                                  'MobileNetV2', 'ShuffleV1', 'ShuffleV2', ])
     parser.add_argument('--dataset', type=str, default='cifar100', choices=['cifar100'], help='dataset')
 
@@ -68,8 +70,8 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = '{}_{}_lr_{}_decay_{}_trial_{}'.format(opt.model, opt.dataset, opt.learning_rate,
-                                                            opt.weight_decay, opt.trial)
+    opt.model_name = '{}_{}_lr_{}_decay_{}_trial_{}_{}'.format(opt.model, opt.dataset, opt.learning_rate,
+                                                            opt.weight_decay, opt.trial, opt.save_name)
 
     opt.tb_folder = os.path.join(opt.tb_path, opt.model_name)
     if not os.path.isdir(opt.tb_folder):
@@ -103,7 +105,7 @@ def main():
                           momentum=opt.momentum,
                           weight_decay=opt.weight_decay)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=opt.label_smoothing)
 
     if torch.cuda.is_available():
         model = model.cuda()

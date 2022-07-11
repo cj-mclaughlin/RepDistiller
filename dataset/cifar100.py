@@ -7,16 +7,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from PIL import Image
 
-"""
-mean = {
-    'cifar100': (0.5071, 0.4867, 0.4408),
-}
-
-std = {
-    'cifar100': (0.2675, 0.2565, 0.2761),
-}
-"""
-
+from .transforms import *
 
 def get_data_folder():
     """
@@ -58,34 +49,23 @@ class CIFAR100Instance(datasets.CIFAR100):
         return img, target, index
 
 
-def get_cifar100_dataloaders(batch_size=128, num_workers=8, is_instance=False):
+def get_cifar100_dataloaders(batch_size=64, num_workers=8, is_instance=False):
     """
     cifar 100
     """
     data_folder = get_data_folder()
 
-    train_transform = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-    ])
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-    ])
-
     if is_instance:
         train_set = CIFAR100Instance(root=data_folder,
                                      download=True,
                                      train=True,
-                                     transform=train_transform)
+                                     transform=DEIT3_TRAIN_TRANSFORM)
         n_data = len(train_set)
     else:
         train_set = datasets.CIFAR100(root=data_folder,
                                       download=True,
                                       train=True,
-                                      transform=train_transform)
+                                      transform=DEIT3_TRAIN_TRANSFORM)
     train_loader = DataLoader(train_set,
                               batch_size=batch_size,
                               shuffle=True,
@@ -94,7 +74,7 @@ def get_cifar100_dataloaders(batch_size=128, num_workers=8, is_instance=False):
     test_set = datasets.CIFAR100(root=data_folder,
                                  download=True,
                                  train=False,
-                                 transform=test_transform)
+                                 transform=DEFAULT_CIFAR_TEST)
     test_loader = DataLoader(test_set,
                              batch_size=int(batch_size/2),
                              shuffle=False,
@@ -104,6 +84,32 @@ def get_cifar100_dataloaders(batch_size=128, num_workers=8, is_instance=False):
         return train_loader, test_loader, n_data
     else:
         return train_loader, test_loader
+
+def get_cifar10_dataloaders(batch_size=64, num_workers=8, is_instance=False):
+    """
+    cifar 10
+    """
+    data_folder = get_data_folder()
+
+    train_set = datasets.CIFAR10(root=data_folder,
+                                    download=True,
+                                    train=True,
+                                    transform=DEIT3_TRAIN_TRANSFORM)
+    train_loader = DataLoader(train_set,
+                              batch_size=batch_size,
+                              shuffle=True,
+                              num_workers=num_workers)
+
+    test_set = datasets.CIFAR10(root=data_folder,
+                                 download=True,
+                                 train=False,
+                                 transform=DEFAULT_CIFAR_TEST)
+    test_loader = DataLoader(test_set,
+                             batch_size=int(batch_size/2),
+                             shuffle=False,
+                             num_workers=int(num_workers/2))
+
+    return train_loader, test_loader
 
 
 class CIFAR100InstanceSample(datasets.CIFAR100):
@@ -190,21 +196,10 @@ def get_cifar100_dataloaders_sample(batch_size=128, num_workers=8, k=4096, mode=
     """
     data_folder = get_data_folder()
 
-    train_transform = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-    ])
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-    ])
-
     train_set = CIFAR100InstanceSample(root=data_folder,
                                        download=True,
                                        train=True,
-                                       transform=train_transform,
+                                       transform=DEIT3_TRAIN_TRANSFORM,
                                        k=k,
                                        mode=mode,
                                        is_sample=is_sample,
@@ -218,7 +213,7 @@ def get_cifar100_dataloaders_sample(batch_size=128, num_workers=8, k=4096, mode=
     test_set = datasets.CIFAR100(root=data_folder,
                                  download=True,
                                  train=False,
-                                 transform=test_transform)
+                                 transform=DEFAULT_CIFAR_TEST)
     test_loader = DataLoader(test_set,
                              batch_size=int(batch_size/2),
                              shuffle=False,
